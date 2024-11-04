@@ -27,11 +27,10 @@ sudo apt install -y \
 
 # Add the CRAN repository for R
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+sudo add-apt-repository -y "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 
 # Install the latest version of R
-sudo apt update
-sudo apt-get install r-base r-base-dev
+sudo apt-get install -y r-base r-base-dev
 
 # Create `Rprofile.site` to set CRAN mirror if it doesn’t exist
 # Then use Posit Public Package Manager for package binaries
@@ -39,7 +38,6 @@ sudo mkdir -p /etc/R
 echo 'options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest"))' | sudo tee /etc/R/Rprofile.site
 
 # Install latest Python version
-sudo apt update
 sudo apt install -y python3 python3-pip python3.12-venv
 
 # Use Posit Public Package Manager for package binaries with pip
