@@ -114,5 +114,5 @@ run_with_spinner "Setting default Git branch to main" "git config --global init.
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${LOG_FILE}."
 echo "${BOLD}Installed tools${RESET}: R, Python, Quarto, RStudio Server, VS Code, DuckDB, Miniconda, Rust, uv"
-echo -e "${YELLOW}To finalize setup:${RESET} open a new terminal or log out and back in to update paths."
+echo -e "${GREEN}To finalize setup:${RESET} open a new terminal or log out and back in to update paths."
 echo -e "Forward ports for RStudio Server (8787) and VS Code (8080) with 'gcloud compute ssh --zone \$ZONE -- -L 8787:localhost:8787 -L 8080:localhost:8080'"
