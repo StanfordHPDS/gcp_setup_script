@@ -13,11 +13,11 @@ echo "Starting setup..." > "$LOG_FILE"
 
 # Helper functions for displaying progress
 function display_message() {
-  echo -n "${BOLD}$1${RESET}... "
+  echo -n "${BOLD}$1${RESET}...  "
 }
 
 function complete_message() {
-  echo -e "${GREEN}Done.${RESET}"
+  echo -e "${GREEN} Done.${RESET}"
 }
 
 # Function for showing a spinner while a command runs
