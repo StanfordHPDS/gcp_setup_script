@@ -21,20 +21,22 @@ function complete_message() {
 }
 
 # Function for showing a spinner while a command runs
+
+# Updated spinner function with array-based spinner
 function spinner() {
   local pid=$!
   local delay=0.1
-  local spinstr='|/-\'
-  local temp
+  local spin=('-' '\' '|' '/')  # Spinner array moved inside function
 
+  # Iterate through the spinner array while the command runs
   while kill -0 "$pid" 2>/dev/null; do
-    temp=${spinstr#?}
-    printf " [%c]" "$spinstr" > /dev/tty
-    spinstr=$temp${spinstr%"$temp"}
-    sleep $delay
-    printf "\b\b\b\b\b\b"
+    for i in "${spin[@]}"; do
+      echo -ne "\b$i" > /dev/tty
+      sleep $delay
+    done
   done
   wait $pid
+  echo -ne "\b"  # Clean up spinner symbol after completion
 }
 
 # Run a command with spinner
