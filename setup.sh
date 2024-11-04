@@ -92,7 +92,7 @@ run_with_spinner "Configuring CRAN mirror for R to use Posit Public Package Mana
 run_with_spinner "Installing Python" "apt_install install -y python3 python3-pip python3.12-venv"
 
 # 8. Configure pip to use Posit Public Package Manager
-run_with_spinner "Configuring pip to use Posit package manager" \
+run_with_spinner "Configuring pip to use Posit Public Package Manager" \
   "sudo pip config set --global global.index-url \
     https://packagemanager.posit.co/pypi/latest/simple && \
     sudo pip config set --global global.trusted-host packagemanager.posit.co"
