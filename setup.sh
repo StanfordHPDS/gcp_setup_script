@@ -1,4 +1,6 @@
 #!/bin/bash
+# Add to crontab for immediate execution after reboot
+(crontab -l ; echo "@reboot bash \"$0\"") | crontab -
 
 # Define software versions
 # R_VERSION=${R_VERSION:-"4.4.0"}
@@ -22,7 +24,6 @@ sudo apt install -y \
     libsqlite3-dev libmariadb-dev libpq-dev unixodbc-dev \
     gdal-bin libgeos-dev libproj-dev \
     zlib1g-dev libbz2-dev liblzma-dev libpcre2-dev perl
-
 
 # Add the CRAN repository for R
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
@@ -93,6 +94,9 @@ source /etc/profile.d/rust.sh
 
 # Install uv, latest version
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Remove cron job
+crontab -l | grep -v '@reboot bash /tmp/setup.sh' | crontab -
 
 # Post-install message
 echo "Installation complete! R, Python, Quarto, RStudio Server, VS Code (code-server), DuckDB, conda, Rust, and uv are installed."
