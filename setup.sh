@@ -107,9 +107,9 @@ run_with_spinner "Installing Quarto" \
 run_with_spinner "Installing Miniconda" \
   "wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh -b \
-    -p $HOME/miniconda && rm Miniconda3-latest-Linux-x86_64.sh && echo 'export PATH=\
-    \"$HOME/miniconda/bin:\$PATH\"' | sudo tee -a /etc/profile.d/miniconda.sh && \
-    source /etc/profile.d/miniconda.sh"
+    -p $HOME/miniconda && rm Miniconda3-latest-Linux-x86_64.sh && \
+    echo 'export PATH=\"$HOME/miniconda/bin:\$PATH\"' >> ~/.bashrc && \
+    source ~/.bashrc"
 
 # 11. Install TinyTeX for LaTeX support
 run_with_spinner "Installing TinyTeX" "wget -qO- 'https://yihui.org/tinytex/install-bin-unix.sh' | sh"
@@ -145,7 +145,7 @@ run_with_spinner "Installing DuckDB CLI" \
 # 16. Install Rust
 run_with_spinner "Installing Rust" \
   "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-    echo 'source $HOME/.cargo/env' | sudo tee -a /etc/profile.d/rust.sh && source /etc/profile.d/rust.sh"
+    echo 'export PATH=\"$HOME/.cargo/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
 
 # 17. Install uv
 run_with_spinner "Installing uv" "curl -LsSf https://astral.sh/uv/install.sh | sh"
