@@ -52,7 +52,7 @@ RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2024.09.0-375"}
 DUCKDB_VERSION=${DUCKDB_VERSION:-"0.8.1"}
 
 # 1. Update and upgrade packages
-run_with_spinner "Updating and upgrading OS packages" "sudo apt update && sudo apt upgrade -y"
+run_with_spinner "Updating and upgrading OS packages" "sudo DEBIAN_FRONTEND=noninteractive apt update && sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y"
 
 # 2. Install essential packages for handling repositories and dependencies
 run_with_spinner "Installing essential packages for repositories and dependencies" "sudo apt install -y software-properties-common gdebi-core unzip"
