@@ -1,6 +1,7 @@
 #!/bin/bash
 # Add to crontab for immediate execution after reboot
 (crontab -l ; echo "@reboot bash \"$0\"") | crontab -
+MARKER_FILE="/tmp/.setup_completed"
 
 # Define software versions
 # R_VERSION=${R_VERSION:-"4.4.0"}
@@ -8,29 +9,34 @@ QUARTO_VERSION=${QUARTO_VERSION:-"1.5.57"}
 RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2024.09.0-375"}
 DUCKDB_VERSION=${DUCKDB_VERSION:-"0.8.1"}
 
-# Update and upgrade packages
-sudo apt update && sudo apt upgrade -y
+## setup
+if [[ ! -f "$MARKER_FILE" ]]; then
+  touch "$MARKER_FILE"
 
-# Install essential packages for handling repositories and dependencies
-sudo apt install -y software-properties-common gdebi-core unzip
+  # Update and upgrade packages
+  sudo apt update && sudo apt upgrade -y
 
-# Install common system libraries for R, Python, and data science packages
-sudo apt install -y \
-    wget curl git libssl-dev libxml2-dev libgit2-dev \
-    build-essential libclang-dev libgmp3-dev libglpk40 \
-    libharfbuzz-dev libfribidi-dev libicu-dev libxml2 \
-    libpng-dev libjpeg-dev libtiff5-dev libfontconfig1-dev \
-    libfreetype-dev libcairo2-dev libxt-dev libmagick++-dev \
-    libsqlite3-dev libmariadb-dev libpq-dev unixodbc-dev \
-    gdal-bin libgeos-dev libproj-dev \
-    zlib1g-dev libbz2-dev liblzma-dev libpcre2-dev perl
+  # Install essential packages for handling repositories and dependencies
+  sudo apt install -y software-properties-common gdebi-core unzip
 
-# Add the CRAN repository for R
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-sudo add-apt-repository -y "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+  # Install common system libraries for R, Python, and data science packages
+  sudo apt install -y \
+      wget curl git libssl-dev libxml2-dev libgit2-dev \
+      build-essential libclang-dev libgmp3-dev libglpk40 \
+      libharfbuzz-dev libfribidi-dev libicu-dev libxml2 \
+      libpng-dev libjpeg-dev libtiff5-dev libfontconfig1-dev \
+      libfreetype-dev libcairo2-dev libxt-dev libmagick++-dev \
+      libsqlite3-dev libmariadb-dev libpq-dev unixodbc-dev \
+      gdal-bin libgeos-dev libproj-dev \
+      zlib1g-dev libbz2-dev liblzma-dev libpcre2-dev perl
 
-# Install the latest version of R
-sudo apt-get install -y r-base r-base-dev
+  # Add the CRAN repository for R
+  sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+  sudo add-apt-repository -y "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+
+  # Install the latest version of R
+  sudo apt-get install -y r-base r-base-dev
+fi
 
 # Create `Rprofile.site` to set CRAN mirror if it doesn’t exist
 # Then use Posit Public Package Manager for package binaries
@@ -94,7 +100,7 @@ source /etc/profile.d/rust.sh
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Remove cron job
-crontab -l | grep -v '@reboot bash /tmp/setup.sh' | crontab -
+crontab -l | grep -v "@reboot bash \"$0\"" | crontab -
 
 # Post-install message
 echo "Installation complete! R, Python, Quarto, RStudio Server, VS Code (code-server), DuckDB, conda, Rust, and uv are installed."
