@@ -4,7 +4,6 @@
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 GREEN=$(tput setaf 2)
-YELLOW=$(tput setaf 3)
 
 # Define the log file location
 LOG_FILE="/tmp/setup_log.txt"
@@ -26,15 +25,16 @@ function spinner() {
   local pid=$!
   local delay=0.1
   local spinstr='|/-\'
-  while [ "$(ps a | awk '{print $1}' | grep "$pid")" ]; do
-    local temp=${spinstr#?}
+  local temp
+
+  while kill -0 "$pid" 2>/dev/null; do
+    temp=${spinstr#?}
     printf " [%c]  " "$spinstr"
     spinstr=$temp${spinstr%"$temp"}
     sleep $delay
     printf "\b\b\b\b\b\b"
   done
   wait $pid
-  return $?
 }
 
 # Run a command with spinner
@@ -112,7 +112,7 @@ run_with_spinner "Installing uv" "curl -LsSf https://astral.sh/uv/install.sh | s
 run_with_spinner "Setting default Git branch to main" "git config --global init.defaultBranch main"
 
 # Post-install message
-echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${LOG_FILE}."
+echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
 echo "${BOLD}Installed tools${RESET}: R, Python, Quarto, RStudio Server, VS Code, DuckDB, Miniconda, Rust, uv"
-echo -e "${GREEN}To finalize setup:${RESET} open a new terminal or log out and back in to update paths."
+echo -e "${BOLD}To finalize setup:${RESET} open a new terminal or log out and back in to update paths."
 echo -e "Forward ports for RStudio Server (8787) and VS Code (8080) with 'gcloud compute ssh --zone \$ZONE -- -L 8787:localhost:8787 -L 8080:localhost:8080'"
