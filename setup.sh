@@ -29,7 +29,7 @@ function spinner() {
 
   while kill -0 "$pid" 2>/dev/null; do
     temp=${spinstr#?}
-    printf " [%c]  " "$spinstr"
+    printf " [%c]" "$spinstr" > /dev/tty
     spinstr=$temp${spinstr%"$temp"}
     sleep $delay
     printf "\b\b\b\b\b\b"
