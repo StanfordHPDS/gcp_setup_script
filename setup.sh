@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Save the original DEBIAN_FRONTEND value
+ORIGINAL_DEBIAN_FRONTEND=$DEBIAN_FRONTEND
+
+# Set DEBIAN_FRONTEND to noninteractive
+export DEBIAN_FRONTEND=noninteractive
+
 # Define colors and text styles
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
@@ -112,6 +118,8 @@ run_with_spinner "Installing uv" "curl -LsSf https://astral.sh/uv/install.sh | s
 
 # Set default git branch to main
 run_with_spinner "Setting default Git branch to main" "git config --global init.defaultBranch main"
+
+export DEBIAN_FRONTEND=$ORIGINAL_DEBIAN_FRONTEND
 
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
