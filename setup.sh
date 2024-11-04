@@ -99,6 +99,9 @@ source /etc/profile.d/rust.sh
 # Install uv, latest version
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# set default branch to main
+git config --global init.defaultBranch main
+
 # Remove cron job
 crontab -l | grep -v "@reboot bash \"$0\"" | crontab -
 
