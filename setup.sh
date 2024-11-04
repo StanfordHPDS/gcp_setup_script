@@ -36,6 +36,9 @@ if [[ ! -f "$MARKER_FILE" ]]; then
 
   # Install the latest version of R
   sudo apt-get install -y r-base r-base-dev
+
+else
+  echo "NOTE: continuing process post-setup"
 fi
 
 # Create `Rprofile.site` to set CRAN mirror if it doesn’t exist
@@ -104,6 +107,9 @@ git config --global init.defaultBranch main
 
 # Remove cron job
 crontab -l | grep -v "@reboot bash \"$0\"" | crontab -
+
+# Remove marker file
+rm "$MARKER_FILE"
 
 # Post-install message
 echo "Installation complete! R, Python, Quarto, RStudio Server, VS Code (code-server), DuckDB, conda, Rust, and uv are installed."
