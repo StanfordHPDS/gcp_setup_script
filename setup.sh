@@ -158,4 +158,4 @@ echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE
 echo "${BOLD}Installed tools${RESET}: R, Python, Quarto, RStudio Server, VS Code, DuckDB, Miniconda, Rust, uv"
 echo -e "${BOLD}To finalize setup:${RESET} open a new terminal or log out and back in to update paths."
 echo -e "${BOLD}Forward ports for RStudio Server (8787) and VS Code (8080) with${RESET}: \
-  '${GREEN}gcloud compute ssh --zone \"\$ZONE\" \"\$INSTANCE_NAME\" --project \"\$PROJECT_ID\" -- -L 8787:localhost:8787 -L 8080:localhost:8080${RESET}"
+  '${GREEN}gcloud compute ssh --zone \"\$ZONE\" \"\$INSTANCE_NAME\" --project \"\$PROJECT_ID\'" -- -L 8787:localhost:8787 -L 8080:localhost:8080${RESET}"
