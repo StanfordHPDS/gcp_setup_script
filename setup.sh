@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Save the original DEBIAN_FRONTEND value
-ORIGINAL_DEBIAN_FRONTEND=$DEBIAN_FRONTEND
-
-# Set DEBIAN_FRONTEND to noninteractive
-export DEBIAN_FRONTEND=noninteractive
-
 # Define colors and text styles
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
@@ -27,14 +21,11 @@ function complete_message() {
 }
 
 # Function for showing a spinner while a command runs
-
-# Updated spinner function with array-based spinner
 function spinner() {
   local pid=$!
   local delay=0.1
-  local spin=('-' '\' '|' '/')  # Spinner array moved inside function
+  local spin=('-' '\' '|' '/')
 
-  # Iterate through the spinner array while the command runs
   while kill -0 "$pid" 2>/dev/null; do
     for i in "${spin[@]}"; do
       echo -ne "\b$i" > /dev/tty
@@ -42,7 +33,7 @@ function spinner() {
     done
   done
   wait $pid
-  echo -ne "\b"  # Clean up spinner symbol after completion
+  echo -ne "\b"
 }
 
 # Run a command with spinner
@@ -52,19 +43,24 @@ function run_with_spinner() {
   complete_message
 }
 
+# Define a custom apt function to enforce DEBIAN_FRONTEND
+function apt_install() {
+  sudo DEBIAN_FRONTEND=noninteractive apt "$@"
+}
+
 # Define software versions
 QUARTO_VERSION=${QUARTO_VERSION:-"1.5.57"}
 RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2024.09.0-375"}
 DUCKDB_VERSION=${DUCKDB_VERSION:-"0.8.1"}
 
 # 1. Update and upgrade packages
-run_with_spinner "Updating and upgrading OS packages" "sudo DEBIAN_FRONTEND=noninteractive apt update && sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y"
+run_with_spinner "Updating and upgrading OS packages" "apt_install update && apt_install upgrade -y"
 
 # 2. Install essential packages for handling repositories and dependencies
-run_with_spinner "Installing essential packages for repositories and dependencies" "sudo apt install -y software-properties-common gdebi-core unzip"
+run_with_spinner "Installing essential packages for repositories and dependencies" "apt_install install -y software-properties-common gdebi-core unzip"
 
 # 3. Install common system libraries for R, Python, and data science packages
-run_with_spinner "Installing common system libraries" "sudo apt install -y \
+run_with_spinner "Installing common system libraries" "apt_install install -y \
     wget curl git libssl-dev libxml2-dev libgit2-dev \
     build-essential libclang-dev libgmp3-dev libglpk40 \
     libharfbuzz-dev libfribidi-dev libicu-dev libxml2 \
@@ -78,13 +74,13 @@ run_with_spinner "Installing common system libraries" "sudo apt install -y \
 run_with_spinner "Adding Ubuntu repository for R" "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 && sudo add-apt-repository -y 'deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/'"
 
 # 5. Install the latest version of R
-run_with_spinner "Installing R" "sudo apt-get install -y r-base r-base-dev"
+run_with_spinner "Installing R" "apt_install install -y r-base r-base-dev"
 
 # 6. Configure CRAN mirror for R to use Posit Public Package Manager
 run_with_spinner "Configuring CRAN mirror for R to use Posit Public Package Manager" "sudo mkdir -p /etc/R && echo 'options(repos = c(CRAN = \"https://packagemanager.posit.co/cran/__linux__/noble/latest\"))' | sudo tee /etc/R/Rprofile.site"
 
 # 7. Install latest Python version
-run_with_spinner "Installing Python" "sudo apt install -y python3 python3-pip python3.12-venv"
+run_with_spinner "Installing Python" "apt_install install -y python3 python3-pip python3.12-venv"
 
 # 8. Configure pip to use Posit Public Package Manager
 run_with_spinner "Configuring pip to use Posit package manager" "sudo pip config set --global global.index-url https://packagemanager.posit.co/pypi/latest/simple && sudo pip config set --global global.trusted-host packagemanager.posit.co"
@@ -105,7 +101,7 @@ run_with_spinner "Installing RStudio Server" "wget https://download2.rstudio.org
 run_with_spinner "Installing VS Code" "curl -fsSL https://code-server.dev/install.sh | sh && sudo systemctl enable --now code-server@$USER"
 
 # 14. Install GitHub CLI
-run_with_spinner "Installing GitHub CLI" "(type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) && sudo mkdir -p -m 755 /etc/apt/keyrings && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && echo 'deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main' | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y"
+run_with_spinner "Installing GitHub CLI" "(type -p wget >/dev/null || (apt_install update && apt_install install wget -y)) && sudo mkdir -p -m 755 /etc/apt/keyrings && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && echo 'deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main' | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && apt_install update && apt_install install gh -y"
 
 # 15. Install DuckDB CLI
 run_with_spinner "Installing DuckDB CLI" "wget https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip && unzip duckdb_cli-linux-amd64.zip && chmod +x duckdb && sudo mv duckdb /usr/local/bin/ && rm duckdb_cli-linux-amd64.zip"
@@ -118,8 +114,6 @@ run_with_spinner "Installing uv" "curl -LsSf https://astral.sh/uv/install.sh | s
 
 # Set default git branch to main
 run_with_spinner "Setting default Git branch to main" "git config --global init.defaultBranch main"
-
-export DEBIAN_FRONTEND=$ORIGINAL_DEBIAN_FRONTEND
 
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
