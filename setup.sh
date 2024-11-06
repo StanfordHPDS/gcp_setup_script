@@ -114,11 +114,22 @@ run_with_spinner "Installing Miniconda" \
 # 11. Install TinyTeX for LaTeX support
 run_with_spinner "Installing TinyTeX" "wget -qO- 'https://yihui.org/tinytex/install-bin-unix.sh' | sh"
 
-# 12. Install RStudio Server
+# 12a. Install RStudio Server
 run_with_spinner "Installing RStudio Server" \
   "wget https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
     sudo gdebi -n rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
     rm rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb"
+
+# 12b. Tweak default RStudio Server settings
+run_with_spinner "Updating RStudio Server preferences" \
+  'PREFERENCES='"'"'{
+    "insert_native_pipe_operator": true,
+    "save_workspace": "never",
+    "load_workspace": "never",
+    "rainbow_parentheses": true,
+    "rainbow_fenced_divs": true
+  }'"'"'; TARGET_FILE="/etc/rstudio/rstudio-prefs.json"; echo "$PREFERENCES" | sudo tee "$TARGET_FILE" > /dev/null'
+
 
 # 13. Install VS Code (code-server)
 run_with_spinner "Installing VS Code" \
