@@ -103,13 +103,21 @@ run_with_spinner "Installing Quarto" \
     quarto-${QUARTO_VERSION}-linux-amd64.deb && sudo dpkg -i \
     quarto-${QUARTO_VERSION}-linux-amd64.deb && rm quarto-${QUARTO_VERSION}-linux-amd64.deb"
 
-# 10. Install Miniconda
+# 10a. Install Miniconda
 run_with_spinner "Installing Miniconda" \
   "wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh -b \
     -p $HOME/miniconda && rm Miniconda3-latest-Linux-x86_64.sh && \
     echo 'export PATH=\"$HOME/miniconda/bin:\$PATH\"' >> ~/.bashrc && \
     source ~/.bashrc"
+
+# 10b. Configure Conda settings
+run_with_spinner "Configuring Conda settings" "
+  conda init && \
+  conda config --add channels defaults && \
+  conda config --add channels conda-forge && \
+  conda config --set auto_activate_base false
+"
 
 # 11. Install TinyTeX for LaTeX support
 run_with_spinner "Installing TinyTeX" "wget -qO- 'https://yihui.org/tinytex/install-bin-unix.sh' | sh"
@@ -131,9 +139,23 @@ run_with_spinner "Updating RStudio Server preferences" \
   }'"'"'; TARGET_FILE="/etc/rstudio/rstudio-prefs.json"; echo "$PREFERENCES" | sudo tee "$TARGET_FILE" > /dev/null'
 
 
-# 13. Install VS Code (code-server)
+# 13a. Install VS Code (code-server)
 run_with_spinner "Installing VS Code" \
   "curl -fsSL https://code-server.dev/install.sh | sh && sudo systemctl enable --now code-server@$USER"
+
+# 13b. Install VS Code extensions
+run_with_spinner "Installing VS Code extensions" "
+  code-server --install-extension quarto.quarto && \
+  code-server --install-extension ms-toolsai.jupyter
+"
+
+# 13c. Configure Quarto settings in VS Code
+run_with_spinner "Configuring Quarto settings in VS Code" "
+  mkdir -p $HOME/.local/share/code-server/User && \
+  echo '{
+    \"quarto.path\": \"/usr/bin/quarto\"
+  }' > $HOME/.local/share/code-server/User/settings.json
+"
 
 # 14. Install GitHub CLI
 run_with_spinner "Installing GitHub CLI" \
