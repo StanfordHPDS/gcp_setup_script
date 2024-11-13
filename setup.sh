@@ -98,26 +98,27 @@ run_with_spinner "Configuring pip to use Posit Public Package Manager" \
     sudo pip config set --global global.trusted-host packagemanager.posit.co"
 
 # 9. Install Quarto
-run_with_spinner "Installing Quarto" \
-  "wget https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/\
-    quarto-${QUARTO_VERSION}-linux-amd64.deb && sudo dpkg -i \
-    quarto-${QUARTO_VERSION}-linux-amd64.deb && rm quarto-${QUARTO_VERSION}-linux-amd64.deb"
+run_run_with_spinner "Installing Quarto" "
+  wget https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz && \
+  tar -xvzf quarto-${QUARTO_VERSION}-linux-amd64.tar.gz && \
+  sudo mv quarto-${QUARTO_VERSION} /opt/quarto-${QUARTO_VERSION} && \
+  sudo ln -s /opt/quarto-${QUARTO_VERSION}/bin/quarto /usr/local/bin/quarto && \
+  rm quarto-${QUARTO_VERSION}-linux-amd64.tar.gz
+"
 
 # 10a. Install Miniconda
 run_with_spinner "Installing Miniconda" \
   "wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     chmod +x Miniconda3-latest-Linux-x86_64.sh && ./Miniconda3-latest-Linux-x86_64.sh -b \
-    -p $HOME/miniconda && rm Miniconda3-latest-Linux-x86_64.sh && \
-    echo 'export PATH=\"$HOME/miniconda/bin:\$PATH\"' >> ~/.bashrc && \
-    source ~/.bashrc"
+    -p $HOME/miniconda && rm Miniconda3-latest-Linux-x86_64.sh"
 
 # 10b. Configure Conda settings
-run_with_spinner "Configuring Conda settings" "
-  conda init && \
-  conda config --add channels defaults && \
-  conda config --add channels conda-forge && \
-  conda config --set auto_activate_base false
-"
+run_with_spinner "Configuring Conda" "
+  $HOME/miniconda/bin/conda init &&
+  $HOME/miniconda/bin/conda config --add channels defaults &&
+  $HOME/miniconda/bin/conda config --add channels conda-forge &&
+  $HOME/miniconda/bin/conda config --set auto_activate_base false"
+
 
 # 11. Install TinyTeX for LaTeX support
 run_with_spinner "Installing TinyTeX" "wget -qO- 'https://yihui.org/tinytex/install-bin-unix.sh' | sh"
@@ -153,7 +154,7 @@ run_with_spinner "Installing VS Code extensions" "
 run_with_spinner "Configuring Quarto settings in VS Code" "
   mkdir -p $HOME/.local/share/code-server/User && \
   echo '{
-    \"quarto.path\": \"/usr/bin/quarto\"
+    \"quarto.path\": \"/usr/local/bin/quarto\"
   }' > $HOME/.local/share/code-server/User/settings.json
 "
 
@@ -192,3 +193,6 @@ echo "${BOLD}Installed tools${RESET}: R, Python, Quarto, RStudio Server, VS Code
 echo -e "${BOLD}To finalize setup:${RESET} open a new terminal or log out and back in to update paths."
 echo -e "${BOLD}Forward ports for RStudio Server (8787) and VS Code (8080) with${RESET}:
   '${GREEN}gcloud compute ssh --zone \"\$ZONE\" \"\$INSTANCE_NAME\" --project \"\$PROJECT_ID\" -- -L 8787:localhost:8787 -L 8080:localhost:8080${RESET}'"
+
+run_with_spinner "Finalizing setup and rebooting \
+the system. Please reconnect in a few minutes." "sudo reboot && logout"
