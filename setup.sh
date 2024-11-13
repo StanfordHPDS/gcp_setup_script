@@ -98,7 +98,7 @@ run_with_spinner "Configuring pip to use Posit Public Package Manager" \
     sudo pip config set --global global.trusted-host packagemanager.posit.co"
 
 # 9. Install Quarto
-run_run_with_spinner "Installing Quarto" "
+run_with_spinner "Installing Quarto" "
   wget https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz && \
   tar -xvzf quarto-${QUARTO_VERSION}-linux-amd64.tar.gz && \
   sudo mv quarto-${QUARTO_VERSION} /opt/quarto-${QUARTO_VERSION} && \
@@ -118,7 +118,6 @@ run_with_spinner "Configuring Conda" "
   $HOME/miniconda/bin/conda config --add channels defaults &&
   $HOME/miniconda/bin/conda config --add channels conda-forge &&
   $HOME/miniconda/bin/conda config --set auto_activate_base false"
-
 
 # 11. Install TinyTeX for LaTeX support
 run_with_spinner "Installing TinyTeX" "wget -qO- 'https://yihui.org/tinytex/install-bin-unix.sh' | sh"
