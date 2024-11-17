@@ -181,10 +181,13 @@ run_with_spinner "Installing Rust" \
     echo 'export PATH=\"$HOME/.cargo/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
 
 # 17. Install uv
-run_with_spinner "Installing uv" "curl -LsSf https://astral.sh/uv/install.sh | sh"
+run_with_spinner "Installing uv and ruff" \
+  "curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    uv tool install ruff && uv tool update-shell"
 
 # Set default git branch to main
-run_with_spinner "Setting default Git branch to main" "git config --global init.defaultBranch main"
+run_with_spinner "Setting default Git branch to main" \
+"git config --global init.defaultBranch main"
 
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
