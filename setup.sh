@@ -144,8 +144,9 @@ run_with_spinner "Installing VS Code" \
 
 # 13b. Install VS Code extensions
 run_with_spinner "Installing VS Code extensions" "
-  code-server --install-extension quarto.quarto && \
-  code-server --install-extension ms-toolsai.jupyter
+  code-server --install-extension ms-python.python && \
+  code-server --install-extension ms-toolsai.jupyter && \
+  code-server --install-extension quarto.quarto
 "
 
 # 13c. Configure Quarto settings in VS Code
