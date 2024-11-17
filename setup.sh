@@ -146,7 +146,8 @@ run_with_spinner "Installing VS Code" \
 run_with_spinner "Installing VS Code extensions" "
   code-server --install-extension ms-python.python && \
   code-server --install-extension ms-toolsai.jupyter && \
-  code-server --install-extension quarto.quarto
+  code-server --install-extension quarto.quarto && \
+  code-server --install-extension sqlfluff.sqlfluff
 "
 
 # 13c. Configure Quarto settings in VS Code
@@ -185,7 +186,12 @@ run_with_spinner "Installing uv and ruff" \
   "curl -LsSf https://astral.sh/uv/install.sh | sh && \
     uv tool install ruff && uv tool update-shell"
 
-# Set default git branch to main
+# 18. Install sqlfluff
+run_with_spinner "Installing SQLFluff" "
+  pip install sqlfluff
+"
+
+# 19. Set default git branch to main
 run_with_spinner "Setting default Git branch to main" \
 "git config --global init.defaultBranch main"
 
