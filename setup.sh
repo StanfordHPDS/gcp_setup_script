@@ -43,7 +43,7 @@ function run_with_spinner() {
 }
 
 # Define a custom apt function to enforce DEBIAN_FRONTEND
-function apt_install() {
+function apt2() {
   sudo DEBIAN_FRONTEND=noninteractive apt "$@"
 }
 
@@ -54,15 +54,15 @@ DUCKDB_VERSION=${DUCKDB_VERSION:-"0.8.1"}
 
 # 1. Update and upgrade packages
 run_with_spinner "Updating and upgrading OS packages" \
-  "apt_install update && apt_install upgrade -y"
+  "apt2 update && apt2 upgrade -y"
 
 # 2. Install essential packages for handling repositories and dependencies
 run_with_spinner "Installing essential packages for repositories and dependencies" \
-  "apt_install install -y software-properties-common gdebi-core unzip"
+  "apt2 install -y software-properties-common gdebi-core unzip"
 
 # 3. Install common system libraries for R, Python, and data science packages
 run_with_spinner "Installing common system libraries" \
-  "apt_install install -y \
+  "apt2 install -y \
     wget curl git libssl-dev libxml2-dev libgit2-dev \
     build-essential libclang-dev libgmp3-dev libglpk40 \
     libharfbuzz-dev libfribidi-dev libicu-dev libxml2 \
@@ -80,7 +80,7 @@ run_with_spinner "Adding Ubuntu repository for R" \
     $(lsb_release -cs)-cran40/'"
 
 # 5. Install the latest version of R
-run_with_spinner "Installing R" "apt_install install -y r-base r-base-dev"
+run_with_spinner "Installing R" "apt2 install -y r-base r-base-dev"
 
 # 6. Configure CRAN mirror for R to use Posit Public Package Manager
 run_with_spinner "Configuring CRAN mirror for R to use Posit Public Package Manager" \
@@ -89,7 +89,7 @@ run_with_spinner "Configuring CRAN mirror for R to use Posit Public Package Mana
     sudo tee /etc/R/Rprofile.site"
 
 # 7. Install latest Python version
-run_with_spinner "Installing Python" "apt_install install -y python3 python3-pip python3.12-venv"
+run_with_spinner "Installing Python" "apt2 install -y python3 python3-pip python3.12-venv"
 
 # 8. Configure pip to use Posit Public Package Manager
 run_with_spinner "Configuring pip to use Posit Public Package Manager" \
@@ -161,7 +161,7 @@ run_with_spinner "Configuring Quarto settings in VS Code" "
 
 # 14. Install GitHub CLI
 run_with_spinner "Installing GitHub CLI" \
-  "(type -p wget >/dev/null || (apt_install update && apt_install install wget -y)) && \
+  "(type -p wget >/dev/null || (apt2 update && apt2 install wget -y)) && \
     sudo mkdir -p -m 755 /etc/apt/keyrings && wget -qO- \
     https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
     sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && \
@@ -169,7 +169,7 @@ run_with_spinner "Installing GitHub CLI" \
     echo 'deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] \
     https://cli.github.com/packages stable main' | \
     sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
-    apt_install update && apt_install install gh -y"
+    apt2 update && apt2 install gh -y"
 
 # 15. Install DuckDB CLI
 run_with_spinner "Installing DuckDB CLI" \
@@ -201,8 +201,8 @@ run_with_spinner "Installing rig for managing R versions" "
   # Add rig GPG key and repository
   sudo curl -L https://rig.r-pkg.org/deb/rig.gpg -o /etc/apt/trusted.gpg.d/rig.gpg &&
   echo 'deb http://rig.r-pkg.org/deb rig main' | sudo tee /etc/apt/sources.list.d/rig.list &&
-  sudo apt update &&
-  sudo apt install -y r-rig"
+  sudo apt2 update &&
+  sudo apt2 install -y r-rig"
 
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
