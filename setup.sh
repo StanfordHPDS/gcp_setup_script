@@ -196,6 +196,14 @@ run_with_spinner "Installing SQLFluff" "
 run_with_spinner "Setting default Git branch to main" \
 "git config --global init.defaultBranch main"
 
+#20. Install rig for managing R versions
+run_with_spinner "Installing rig for managing R versions" "
+  # Add rig GPG key and repository
+  sudo curl -L https://rig.r-pkg.org/deb/rig.gpg -o /etc/apt/trusted.gpg.d/rig.gpg &&
+  echo 'deb http://rig.r-pkg.org/deb rig main' | sudo tee /etc/apt/sources.list.d/rig.list &&
+  sudo apt update &&
+  sudo apt install -y r-rig"
+
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
 echo "${BOLD}Installed tools${RESET}: R, Python, Quarto, RStudio Server, VS Code, DuckDB, Miniconda, Rust, uv"
