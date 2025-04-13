@@ -119,7 +119,8 @@ run_with_spinner "Installing Miniconda" \
 run_with_spinner "Configuring Conda" "
   $HOME/miniconda/bin/conda init &&
   $HOME/miniconda/bin/conda config --add channels defaults &&
-  $HOME/miniconda/bin/conda config --add channels conda-forge"
+  $HOME/miniconda/bin/conda config --add channels conda-forge &&
+  $HOME/miniconda/bin/conda config --set auto_activate_base false"
 
 # 11. Install TinyTeX for LaTeX support
 run_with_spinner "Installing TinyTeX" "  /opt/quarto-${QUARTO_VERSION}/bin/quarto install tinytex --update-path"
