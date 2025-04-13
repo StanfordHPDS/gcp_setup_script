@@ -49,11 +49,11 @@ function apt2() {
 
 # Define software versions
 # https://quarto.org/docs/get-started/
-QUARTO_VERSION=${QUARTO_VERSION:-"1.6.42"}
+QUARTO_VERSION=${QUARTO_VERSION:-"1.7.23"}
 # https://posit.co/download/rstudio-server/
 RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2024.12.1-563"}
 # https://duckdb.org/docs/installation/?version=stable&environment=cli&platform=linux&download_method=direct&architecture=x86_64
-DUCKDB_VERSION=${DUCKDB_VERSION:-"1.2.1"}
+DUCKDB_VERSION=${DUCKDB_VERSION:-"1.2.2"}
 
 # 1. Update and upgrade packages
 run_with_spinner "Updating and upgrading OS packages" \
