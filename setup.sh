@@ -73,7 +73,8 @@ run_with_spinner "Installing common system libraries" \
     libfreetype-dev libcairo2-dev libxt-dev libmagick++-dev \
     libsqlite3-dev libmariadb-dev libpq-dev unixodbc-dev \
     gdal-bin libgeos-dev libproj-dev \
-    zlib1g-dev libbz2-dev liblzma-dev libpcre2-dev perl"
+    zlib1g-dev libbz2-dev liblzma-dev libpcre2-dev perl \
+    libcurl4-openssl-dev pandoc"
 
 # 4. Add the CRAN repository for R
 run_with_spinner "Adding Ubuntu repository for R" \
@@ -92,7 +93,7 @@ run_with_spinner "Configuring CRAN mirror for R to use Posit Public Package Mana
     sudo tee /etc/R/Rprofile.site"
 
 # 7. Install latest Python version
-run_with_spinner "Installing Python" "apt2 install -y python3 python3-pip python3.12-venv"
+run_with_spinner "Installing Python" "apt2 install -y python3 python3-pip python3-venv"
 
 # 8. Configure pip to use Posit Public Package Manager
 run_with_spinner "Configuring pip to use Posit Public Package Manager" \
@@ -151,7 +152,6 @@ run_with_spinner "Installing VS Code extensions" "
   code-server --install-extension ms-python.python && \
   code-server --install-extension ms-toolsai.jupyter && \
   code-server --install-extension quarto.quarto && \
-  code-server --install-extension sqlfluff.sqlfluff && \
   code-server --install-extension charliermarsh.ruff
 "
 
@@ -187,20 +187,18 @@ run_with_spinner "Installing Rust" \
     echo 'export PATH=\"$HOME/.cargo/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
 
 # 17. Install uv
-run_with_spinner "Installing uv and ruff" \
+run_with_spinner "Installing uv, ruff, and SQLFluff" \
   "curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    uv tool install ruff && uv tool update-shell"
+    source $HOME/.local/bin/env && \
+    uv tool install ruff && \
+    uv tool install sqlfluff && \
+    uv tool update-shell"
 
-# 18. Install sqlfluff
-run_with_spinner "Installing SQLFluff" "
-  pip install sqlfluff
-"
-
-# 19. Set default git branch to main
+# 18. Set default git branch to main
 run_with_spinner "Setting default Git branch to main" \
 "git config --global init.defaultBranch main"
 
-#20. Install rig for managing R versions
+# 19. Install rig for managing R versions
 run_with_spinner "Installing rig for managing R versions" "
   # Add rig GPG key and repository
   sudo curl -L https://rig.r-pkg.org/deb/rig.gpg -o /etc/apt/trusted.gpg.d/rig.gpg &&

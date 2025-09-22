@@ -82,7 +82,7 @@ function get_current_version() {
       ;;
     "rstudio-server")
       if command_exists rstudio-server; then
-        rstudio-server version 2>/dev/null | grep -oP '(?<=\+)\d+' || echo "unknown"
+        rstudio-server version 2>/dev/null | cut -d' ' -f1 || echo "unknown"
       else
         echo "not installed"
       fi
@@ -104,7 +104,6 @@ function get_current_version() {
 UPDATE_ALL=true
 UPDATE_SYSTEM=false
 UPDATE_R=false
-UPDATE_PYTHON=false
 UPDATE_QUARTO=false
 UPDATE_RSTUDIO=false
 UPDATE_VSCODE=false
@@ -121,11 +120,6 @@ while [[ $# -gt 0 ]]; do
     --r)
       UPDATE_ALL=false
       UPDATE_R=true
-      shift
-      ;;
-    --python)
-      UPDATE_ALL=false
-      UPDATE_PYTHON=true
       shift
       ;;
     --quarto)
@@ -158,7 +152,6 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  --system    Update system packages only"
       echo "  --r         Update R only"
-      echo "  --python    Update Python packages only"
       echo "  --quarto    Update Quarto only"
       echo "  --rstudio   Update RStudio Server only"
       echo "  --vscode    Update VS Code and extensions only"
@@ -194,7 +187,6 @@ else
   info_message "Selective update mode:"
   [ "$UPDATE_SYSTEM" = true ] && echo "  - System packages"
   [ "$UPDATE_R" = true ] && echo "  - R"
-  [ "$UPDATE_PYTHON" = true ] && echo "  - Python packages"
   [ "$UPDATE_QUARTO" = true ] && echo "  - Quarto"
   [ "$UPDATE_RSTUDIO" = true ] && echo "  - RStudio Server"
   [ "$UPDATE_VSCODE" = true ] && echo "  - VS Code and extensions"
@@ -219,23 +211,13 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_R" = true ]; then
   fi
 fi
 
-# 3. Update Python packages
-if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_PYTHON" = true ]; then
-  if command_exists python3; then
-    run_with_spinner "Updating Python packages" \
-      "python3 -m pip install --upgrade pip setuptools wheel"
-  else
-    info_message "Python3 is not installed. Skipping Python update."
-  fi
-fi
-
-# 4. Update Quarto
+# 3. Update Quarto
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_QUARTO" = true ]; then
   if command_exists quarto; then
     current_version=$(get_current_version "quarto")
     info_message "Current Quarto version: $current_version"
     info_message "Target Quarto version: $QUARTO_VERSION"
-    
+
     if [ "$current_version" != "$QUARTO_VERSION" ]; then
       run_with_spinner "Updating Quarto to version $QUARTO_VERSION" "
         wget -q https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz && \
@@ -246,11 +228,11 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_QUARTO" = true ]; then
         sudo ln -s /opt/quarto-${QUARTO_VERSION}/bin/quarto /usr/local/bin/quarto && \
         rm quarto-${QUARTO_VERSION}-linux-amd64.tar.gz
       "
-      
+
       # Update TinyTeX if it's installed
       if [ -d "$HOME/.TinyTeX" ] || [ -d "/opt/TinyTeX" ]; then
         run_with_spinner "Updating TinyTeX" \
-          "/opt/quarto-${QUARTO_VERSION}/bin/quarto install tinytex --update-path"
+          "/opt/quarto-${QUARTO_VERSION}/bin/quarto install tinytex --update-path --no-prompt"
       fi
     else
       info_message "Quarto is already at version $current_version. Skipping update."
@@ -260,22 +242,22 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_QUARTO" = true ]; then
   fi
 fi
 
-# 5. Update RStudio Server
+# 4. Update RStudio Server
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_RSTUDIO" = true ]; then
   if command_exists rstudio-server; then
     current_version=$(get_current_version "rstudio-server")
     info_message "Current RStudio Server version: $current_version"
     info_message "Target RStudio Server version: $RSTUDIO_SERVER_VERSION"
-    
+
     # Stop RStudio Server before updating
     run_with_spinner "Stopping RStudio Server" \
       "sudo systemctl stop rstudio-server"
-    
+
     run_with_spinner "Updating RStudio Server to version $RSTUDIO_SERVER_VERSION" \
       "wget -q https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
         sudo gdebi -n rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
         rm rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb"
-    
+
     # Start RStudio Server after updating
     run_with_spinner "Starting RStudio Server" \
       "sudo systemctl start rstudio-server"
@@ -284,19 +266,18 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_RSTUDIO" = true ]; then
   fi
 fi
 
-# 6. Update VS Code and extensions
+# 5. Update VS Code and extensions
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_VSCODE" = true ]; then
   if command_exists code-server; then
     # Update code-server
     run_with_spinner "Updating VS Code (code-server)" \
       "curl -fsSL https://code-server.dev/install.sh | sh"
-    
+
     # Update extensions
     run_with_spinner "Updating VS Code extensions" "
       code-server --install-extension ms-python.python --force && \
       code-server --install-extension ms-toolsai.jupyter --force && \
       code-server --install-extension quarto.quarto --force && \
-      code-server --install-extension sqlfluff.sqlfluff --force && \
       code-server --install-extension charliermarsh.ruff --force
     "
   else
@@ -304,13 +285,13 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_VSCODE" = true ]; then
   fi
 fi
 
-# 7. Update DuckDB
+# 6. Update DuckDB
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DUCKDB" = true ]; then
   if command_exists duckdb; then
     current_version=$(get_current_version "duckdb")
     info_message "Current DuckDB version: $current_version"
     info_message "Target DuckDB version: $DUCKDB_VERSION"
-    
+
     if [ "$current_version" != "$DUCKDB_VERSION" ]; then
       run_with_spinner "Updating DuckDB to version $DUCKDB_VERSION" \
         "wget -q https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip && \
@@ -324,7 +305,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DUCKDB" = true ]; then
   fi
 fi
 
-# 8. Update development tools
+# 7. Update development tools
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_TOOLS" = true ]; then
   # Update Rust
   if [ -f "$HOME/.cargo/bin/rustup" ]; then
@@ -333,26 +314,26 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_TOOLS" = true ]; then
   else
     info_message "Rust is not installed. Skipping Rust update."
   fi
-  
+
   # Update uv and ruff
   if command_exists uv; then
     run_with_spinner "Updating uv" \
       "curl -LsSf https://astral.sh/uv/install.sh | sh"
-    
+
     run_with_spinner "Updating ruff" \
       "uv tool install --upgrade ruff"
   else
     info_message "uv is not installed. Skipping uv/ruff update."
   fi
-  
+
   # Update sqlfluff
   if command_exists sqlfluff; then
     run_with_spinner "Updating SQLFluff" \
-      "pip install --upgrade sqlfluff"
+      "uv tool install --upgrade sqlfluff"
   else
     info_message "SQLFluff is not installed. Skipping SQLFluff update."
   fi
-  
+
   # Update rig
   if command_exists rig; then
     run_with_spinner "Updating rig" \
@@ -373,7 +354,6 @@ if [ "$UPDATE_ALL" = true ]; then
 else
   [ "$UPDATE_SYSTEM" = true ] && echo "  - System packages"
   [ "$UPDATE_R" = true ] && echo "  - R"
-  [ "$UPDATE_PYTHON" = true ] && echo "  - Python packages"
   [ "$UPDATE_QUARTO" = true ] && echo "  - Quarto"
   [ "$UPDATE_RSTUDIO" = true ] && echo "  - RStudio Server"
   [ "$UPDATE_VSCODE" = true ] && echo "  - VS Code and extensions"
