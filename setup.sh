@@ -203,8 +203,8 @@ run_with_spinner "Installing rig for managing R versions" "
   # Add rig GPG key and repository
   sudo curl -L https://rig.r-pkg.org/deb/rig.gpg -o /etc/apt/trusted.gpg.d/rig.gpg &&
   echo 'deb http://rig.r-pkg.org/deb rig main' | sudo tee /etc/apt/sources.list.d/rig.list &&
-  sudo apt2 update &&
-  sudo apt2 install -y r-rig"
+  apt2 update &&
+  apt2 install -y r-rig"
 
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
