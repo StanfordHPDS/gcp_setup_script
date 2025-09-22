@@ -104,7 +104,6 @@ function get_current_version() {
 UPDATE_ALL=true
 UPDATE_SYSTEM=false
 UPDATE_R=false
-UPDATE_PYTHON=false
 UPDATE_QUARTO=false
 UPDATE_RSTUDIO=false
 UPDATE_VSCODE=false
@@ -121,11 +120,6 @@ while [[ $# -gt 0 ]]; do
     --r)
       UPDATE_ALL=false
       UPDATE_R=true
-      shift
-      ;;
-    --python)
-      UPDATE_ALL=false
-      UPDATE_PYTHON=true
       shift
       ;;
     --quarto)
@@ -158,7 +152,6 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  --system    Update system packages only"
       echo "  --r         Update R only"
-      echo "  --python    Update Python packages only"
       echo "  --quarto    Update Quarto only"
       echo "  --rstudio   Update RStudio Server only"
       echo "  --vscode    Update VS Code and extensions only"
@@ -194,7 +187,6 @@ else
   info_message "Selective update mode:"
   [ "$UPDATE_SYSTEM" = true ] && echo "  - System packages"
   [ "$UPDATE_R" = true ] && echo "  - R"
-  [ "$UPDATE_PYTHON" = true ] && echo "  - Python packages"
   [ "$UPDATE_QUARTO" = true ] && echo "  - Quarto"
   [ "$UPDATE_RSTUDIO" = true ] && echo "  - RStudio Server"
   [ "$UPDATE_VSCODE" = true ] && echo "  - VS Code and extensions"
@@ -219,17 +211,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_R" = true ]; then
   fi
 fi
 
-# 3. Update Python packages
-if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_PYTHON" = true ]; then
-  if command_exists python3; then
-    run_with_spinner "Updating Python packages" \
-      "python3 -m pip install --upgrade pip setuptools wheel"
-  else
-    info_message "Python3 is not installed. Skipping Python update."
-  fi
-fi
-
-# 4. Update Quarto
+# 3. Update Quarto
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_QUARTO" = true ]; then
   if command_exists quarto; then
     current_version=$(get_current_version "quarto")
@@ -260,7 +242,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_QUARTO" = true ]; then
   fi
 fi
 
-# 5. Update RStudio Server
+# 4. Update RStudio Server
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_RSTUDIO" = true ]; then
   if command_exists rstudio-server; then
     current_version=$(get_current_version "rstudio-server")
@@ -284,7 +266,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_RSTUDIO" = true ]; then
   fi
 fi
 
-# 6. Update VS Code and extensions
+# 5. Update VS Code and extensions
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_VSCODE" = true ]; then
   if command_exists code-server; then
     # Update code-server
@@ -296,7 +278,6 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_VSCODE" = true ]; then
       code-server --install-extension ms-python.python --force && \
       code-server --install-extension ms-toolsai.jupyter --force && \
       code-server --install-extension quarto.quarto --force && \
-      code-server --install-extension sqlfluff.sqlfluff --force && \
       code-server --install-extension charliermarsh.ruff --force
     "
   else
@@ -304,7 +285,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_VSCODE" = true ]; then
   fi
 fi
 
-# 7. Update DuckDB
+# 6. Update DuckDB
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DUCKDB" = true ]; then
   if command_exists duckdb; then
     current_version=$(get_current_version "duckdb")
@@ -324,7 +305,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DUCKDB" = true ]; then
   fi
 fi
 
-# 8. Update development tools
+# 7. Update development tools
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_TOOLS" = true ]; then
   # Update Rust
   if [ -f "$HOME/.cargo/bin/rustup" ]; then
@@ -348,7 +329,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_TOOLS" = true ]; then
   # Update sqlfluff
   if command_exists sqlfluff; then
     run_with_spinner "Updating SQLFluff" \
-      "pip install --upgrade sqlfluff"
+      "uv tool install --upgrade sqlfluff"
   else
     info_message "SQLFluff is not installed. Skipping SQLFluff update."
   fi
@@ -373,7 +354,6 @@ if [ "$UPDATE_ALL" = true ]; then
 else
   [ "$UPDATE_SYSTEM" = true ] && echo "  - System packages"
   [ "$UPDATE_R" = true ] && echo "  - R"
-  [ "$UPDATE_PYTHON" = true ] && echo "  - Python packages"
   [ "$UPDATE_QUARTO" = true ] && echo "  - Quarto"
   [ "$UPDATE_RSTUDIO" = true ] && echo "  - RStudio Server"
   [ "$UPDATE_VSCODE" = true ] && echo "  - VS Code and extensions"

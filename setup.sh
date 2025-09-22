@@ -151,7 +151,6 @@ run_with_spinner "Installing VS Code extensions" "
   code-server --install-extension ms-python.python && \
   code-server --install-extension ms-toolsai.jupyter && \
   code-server --install-extension quarto.quarto && \
-  code-server --install-extension sqlfluff.sqlfluff && \
   code-server --install-extension charliermarsh.ruff
 "
 
@@ -187,20 +186,18 @@ run_with_spinner "Installing Rust" \
     echo 'export PATH=\"$HOME/.cargo/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
 
 # 17. Install uv
-run_with_spinner "Installing uv and ruff" \
+run_with_spinner "Installing uv, ruff, and SQLFluff" \
   "curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    uv tool install ruff && uv tool update-shell"
+    source $HOME/.local/bin/env && \
+    uv tool install ruff && \
+    uv tool install sqlfluff && \
+    uv tool update-shell"
 
-# 18. Install sqlfluff
-run_with_spinner "Installing SQLFluff" "
-  pip install sqlfluff
-"
-
-# 19. Set default git branch to main
+# 18. Set default git branch to main
 run_with_spinner "Setting default Git branch to main" \
 "git config --global init.defaultBranch main"
 
-#20. Install rig for managing R versions
+# 19. Install rig for managing R versions
 run_with_spinner "Installing rig for managing R versions" "
   # Add rig GPG key and repository
   sudo curl -L https://rig.r-pkg.org/deb/rig.gpg -o /etc/apt/trusted.gpg.d/rig.gpg &&
