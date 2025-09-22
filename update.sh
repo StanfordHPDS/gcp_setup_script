@@ -246,21 +246,27 @@ fi
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_RSTUDIO" = true ]; then
   if command_exists rstudio-server; then
     current_version=$(get_current_version "rstudio-server")
+    # Convert hyphen to plus for comparison
+    target_version_display=$(echo "$RSTUDIO_SERVER_VERSION" | sed 's/-/+/')
     info_message "Current RStudio Server version: $current_version"
-    info_message "Target RStudio Server version: $RSTUDIO_SERVER_VERSION"
+    info_message "Target RStudio Server version: $target_version_display"
 
-    # Stop RStudio Server before updating
-    run_with_spinner "Stopping RStudio Server" \
-      "sudo systemctl stop rstudio-server"
+    if [ "$current_version" != "$target_version_display" ]; then
+      # Stop RStudio Server before updating
+      run_with_spinner "Stopping RStudio Server" \
+        "sudo systemctl stop rstudio-server"
 
-    run_with_spinner "Updating RStudio Server to version $RSTUDIO_SERVER_VERSION" \
-      "wget -q https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
-        sudo gdebi -n rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
-        rm rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb"
+      run_with_spinner "Updating RStudio Server to version $target_version_display" \
+        "wget -q https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
+          sudo gdebi -n rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
+          rm rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb"
 
-    # Start RStudio Server after updating
-    run_with_spinner "Starting RStudio Server" \
-      "sudo systemctl start rstudio-server"
+      # Start RStudio Server after updating
+      run_with_spinner "Starting RStudio Server" \
+        "sudo systemctl start rstudio-server"
+    else
+      info_message "RStudio Server is already at version $current_version. Skipping update."
+    fi
   else
     info_message "RStudio Server is not installed. Skipping RStudio Server update."
   fi
