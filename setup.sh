@@ -92,7 +92,7 @@ run_with_spinner "Configuring CRAN mirror for R to use Posit Public Package Mana
     sudo tee /etc/R/Rprofile.site"
 
 # 7. Install latest Python version
-run_with_spinner "Installing Python" "apt2 install -y python3 python3-pip python3.12-venv"
+run_with_spinner "Installing Python" "apt2 install -y python3 python3-pip python3-venv"
 
 # 8. Configure pip to use Posit Public Package Manager
 run_with_spinner "Configuring pip to use Posit Public Package Manager" \
