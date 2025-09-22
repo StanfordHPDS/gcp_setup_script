@@ -73,7 +73,8 @@ run_with_spinner "Installing common system libraries" \
     libfreetype-dev libcairo2-dev libxt-dev libmagick++-dev \
     libsqlite3-dev libmariadb-dev libpq-dev unixodbc-dev \
     gdal-bin libgeos-dev libproj-dev \
-    zlib1g-dev libbz2-dev liblzma-dev libpcre2-dev perl"
+    zlib1g-dev libbz2-dev liblzma-dev libpcre2-dev perl \
+    libcurl4-openssl-dev pandoc"
 
 # 4. Add the CRAN repository for R
 run_with_spinner "Adding Ubuntu repository for R" \

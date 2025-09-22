@@ -82,7 +82,7 @@ function get_current_version() {
       ;;
     "rstudio-server")
       if command_exists rstudio-server; then
-        rstudio-server version 2>/dev/null | grep -oP '(?<=\+)\d+' || echo "unknown"
+        rstudio-server version 2>/dev/null | cut -d' ' -f1 || echo "unknown"
       else
         echo "not installed"
       fi
@@ -217,7 +217,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_QUARTO" = true ]; then
     current_version=$(get_current_version "quarto")
     info_message "Current Quarto version: $current_version"
     info_message "Target Quarto version: $QUARTO_VERSION"
-    
+
     if [ "$current_version" != "$QUARTO_VERSION" ]; then
       run_with_spinner "Updating Quarto to version $QUARTO_VERSION" "
         wget -q https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz && \
@@ -228,11 +228,11 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_QUARTO" = true ]; then
         sudo ln -s /opt/quarto-${QUARTO_VERSION}/bin/quarto /usr/local/bin/quarto && \
         rm quarto-${QUARTO_VERSION}-linux-amd64.tar.gz
       "
-      
+
       # Update TinyTeX if it's installed
       if [ -d "$HOME/.TinyTeX" ] || [ -d "/opt/TinyTeX" ]; then
         run_with_spinner "Updating TinyTeX" \
-          "/opt/quarto-${QUARTO_VERSION}/bin/quarto install tinytex --update-path"
+          "/opt/quarto-${QUARTO_VERSION}/bin/quarto install tinytex --update-path --no-prompt"
       fi
     else
       info_message "Quarto is already at version $current_version. Skipping update."
@@ -248,16 +248,16 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_RSTUDIO" = true ]; then
     current_version=$(get_current_version "rstudio-server")
     info_message "Current RStudio Server version: $current_version"
     info_message "Target RStudio Server version: $RSTUDIO_SERVER_VERSION"
-    
+
     # Stop RStudio Server before updating
     run_with_spinner "Stopping RStudio Server" \
       "sudo systemctl stop rstudio-server"
-    
+
     run_with_spinner "Updating RStudio Server to version $RSTUDIO_SERVER_VERSION" \
       "wget -q https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
         sudo gdebi -n rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb && \
         rm rstudio-server-${RSTUDIO_SERVER_VERSION}-amd64.deb"
-    
+
     # Start RStudio Server after updating
     run_with_spinner "Starting RStudio Server" \
       "sudo systemctl start rstudio-server"
@@ -272,7 +272,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_VSCODE" = true ]; then
     # Update code-server
     run_with_spinner "Updating VS Code (code-server)" \
       "curl -fsSL https://code-server.dev/install.sh | sh"
-    
+
     # Update extensions
     run_with_spinner "Updating VS Code extensions" "
       code-server --install-extension ms-python.python --force && \
@@ -291,7 +291,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DUCKDB" = true ]; then
     current_version=$(get_current_version "duckdb")
     info_message "Current DuckDB version: $current_version"
     info_message "Target DuckDB version: $DUCKDB_VERSION"
-    
+
     if [ "$current_version" != "$DUCKDB_VERSION" ]; then
       run_with_spinner "Updating DuckDB to version $DUCKDB_VERSION" \
         "wget -q https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip && \
@@ -314,18 +314,18 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_TOOLS" = true ]; then
   else
     info_message "Rust is not installed. Skipping Rust update."
   fi
-  
+
   # Update uv and ruff
   if command_exists uv; then
     run_with_spinner "Updating uv" \
       "curl -LsSf https://astral.sh/uv/install.sh | sh"
-    
+
     run_with_spinner "Updating ruff" \
       "uv tool install --upgrade ruff"
   else
     info_message "uv is not installed. Skipping uv/ruff update."
   fi
-  
+
   # Update sqlfluff
   if command_exists sqlfluff; then
     run_with_spinner "Updating SQLFluff" \
@@ -333,7 +333,7 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_TOOLS" = true ]; then
   else
     info_message "SQLFluff is not installed. Skipping SQLFluff update."
   fi
-  
+
   # Update rig
   if command_exists rig; then
     run_with_spinner "Updating rig" \
