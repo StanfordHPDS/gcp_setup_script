@@ -108,6 +108,7 @@ UPDATE_QUARTO=false
 UPDATE_RSTUDIO=false
 UPDATE_VSCODE=false
 UPDATE_DUCKDB=false
+UPDATE_DOCKER=false
 UPDATE_TOOLS=false
 
 while [[ $# -gt 0 ]]; do
@@ -142,6 +143,11 @@ while [[ $# -gt 0 ]]; do
       UPDATE_DUCKDB=true
       shift
       ;;
+    --docker)
+      UPDATE_ALL=false
+      UPDATE_DOCKER=true
+      shift
+      ;;
     --tools)
       UPDATE_ALL=false
       UPDATE_TOOLS=true
@@ -156,6 +162,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --rstudio   Update RStudio Server only"
       echo "  --vscode    Update VS Code and extensions only"
       echo "  --duckdb    Update DuckDB only"
+      echo "  --docker    Update Docker only"
       echo "  --tools     Update development tools (Rust, uv, ruff, sqlfluff, rig) only"
       echo "  --help, -h  Show this help message"
       echo ""
@@ -191,6 +198,7 @@ else
   [ "$UPDATE_RSTUDIO" = true ] && echo "  - RStudio Server"
   [ "$UPDATE_VSCODE" = true ] && echo "  - VS Code and extensions"
   [ "$UPDATE_DUCKDB" = true ] && echo "  - DuckDB"
+  [ "$UPDATE_DOCKER" = true ] && echo "  - Docker"
   [ "$UPDATE_TOOLS" = true ] && echo "  - Development tools"
 fi
 echo ""
@@ -311,7 +319,19 @@ if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DUCKDB" = true ]; then
   fi
 fi
 
-# 7. Update development tools
+# 7. Update Docker
+if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DOCKER" = true ]; then
+  if command_exists docker; then
+    info_message "Docker is installed. Checking for updates..."
+    # Docker updates are handled by apt, so we just update via apt
+    run_with_spinner "Updating Docker" \
+      "apt2 update && apt2 install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
+  else
+    info_message "Docker is not installed. Skipping Docker update."
+  fi
+fi
+
+# 8. Update development tools
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_TOOLS" = true ]; then
   # Update Rust
   if [ -f "$HOME/.cargo/bin/rustup" ]; then
@@ -364,6 +384,7 @@ else
   [ "$UPDATE_RSTUDIO" = true ] && echo "  - RStudio Server"
   [ "$UPDATE_VSCODE" = true ] && echo "  - VS Code and extensions"
   [ "$UPDATE_DUCKDB" = true ] && echo "  - DuckDB"
+  [ "$UPDATE_DOCKER" = true ] && echo "  - Docker"
   [ "$UPDATE_TOOLS" = true ] && echo "  - Development tools (Rust, uv, ruff, sqlfluff, rig)"
 fi
 echo ""

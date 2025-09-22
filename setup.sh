@@ -206,9 +206,25 @@ run_with_spinner "Installing rig for managing R versions" "
   apt2 update &&
   apt2 install -y r-rig"
 
+# 20. Install Docker
+run_with_spinner "Installing Docker" "
+  # Add Docker's official GPG key
+  sudo install -m 0755 -d /etc/apt/keyrings &&
+  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc &&
+  sudo chmod a+r /etc/apt/keyrings/docker.asc &&
+  # Add the repository
+  echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+    \$(. /etc/os-release && echo \"\$VERSION_CODENAME\") stable\" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
+  # Install Docker
+  apt2 update &&
+  apt2 install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin &&
+  # Add user to docker group
+  sudo usermod -aG docker \$USER"
+
 # Post-install message
 echo -e "\n${BOLD}Installation complete!${RESET} Log saved to ${GREEN}${LOG_FILE}${RESET}."
-echo "${BOLD}Installed tools${RESET}: R, Python, Quarto, RStudio Server, VS Code, DuckDB, Miniconda, Rust, uv"
+echo "${BOLD}Installed tools${RESET}: R, Python, Quarto, RStudio Server, VS Code, DuckDB, Docker, Miniconda, Rust, uv"
 echo -e "${BOLD}To finalize setup:${RESET} open a new terminal or log out and back in to update paths."
 echo -e "${BOLD}Forward ports for RStudio Server (8787) and VS Code (8080) with${RESET}:
   '${GREEN}gcloud compute ssh --zone \"\$ZONE\" \"\$INSTANCE_NAME\" --project \"\$PROJECT_ID\" -- -L 8787:localhost:8787 -L 8080:localhost:8080${RESET}'"
