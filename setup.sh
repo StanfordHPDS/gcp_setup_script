@@ -49,11 +49,9 @@ function apt2() {
 
 # Define software versions
 # https://quarto.org/docs/get-started/
-QUARTO_VERSION=${QUARTO_VERSION:-"1.8.24"}
+QUARTO_VERSION=${QUARTO_VERSION:-"1.8.27"}
 # https://posit.co/download/rstudio-server/
-RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2025.09.0-387"}
-# https://duckdb.org/docs/installation/?version=stable&environment=cli&platform=linux&download_method=direct&architecture=x86_64
-DUCKDB_VERSION=${DUCKDB_VERSION:-"1.4.0"}
+RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2026.01.0-392"}
 
 # 1. Update and upgrade packages
 run_with_spinner "Updating and upgrading OS packages" \
@@ -177,9 +175,7 @@ run_with_spinner "Installing GitHub CLI" \
 
 # 15. Install DuckDB CLI
 run_with_spinner "Installing DuckDB CLI" \
-  "wget https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip && \
-    unzip duckdb_cli-linux-amd64.zip && chmod +x duckdb && \
-    sudo mv duckdb /usr/local/bin/ && rm duckdb_cli-linux-amd64.zip"
+  "curl -fsSL https://install.duckdb.org | sh"
 
 # 16. Install Rust
 run_with_spinner "Installing Rust" \

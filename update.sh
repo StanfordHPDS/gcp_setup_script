@@ -87,13 +87,6 @@ function get_current_version() {
         echo "not installed"
       fi
       ;;
-    "duckdb")
-      if command_exists duckdb; then
-        duckdb --version 2>/dev/null | grep -oP 'v\K[\d.]+' || echo "unknown"
-      else
-        echo "not installed"
-      fi
-      ;;
     *)
       echo "unknown"
       ;;
@@ -178,9 +171,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Define software versions (can be overridden by environment variables)
-QUARTO_VERSION=${QUARTO_VERSION:-"1.8.24"}
-RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2025.09.0-387"}
-DUCKDB_VERSION=${DUCKDB_VERSION:-"1.4.0"}
+QUARTO_VERSION=${QUARTO_VERSION:-"1.8.27"}
+RSTUDIO_SERVER_VERSION=${RSTUDIO_SERVER_VERSION:-"2026.01.0-392"}
 
 echo -e "\n${BOLD}GCP Instance Update Script${RESET}"
 echo "================================"
@@ -301,22 +293,8 @@ fi
 
 # 6. Update DuckDB
 if [ "$UPDATE_ALL" = true ] || [ "$UPDATE_DUCKDB" = true ]; then
-  if command_exists duckdb; then
-    current_version=$(get_current_version "duckdb")
-    info_message "Current DuckDB version: $current_version"
-    info_message "Target DuckDB version: $DUCKDB_VERSION"
-
-    if [ "$current_version" != "$DUCKDB_VERSION" ]; then
-      run_with_spinner "Updating DuckDB to version $DUCKDB_VERSION" \
-        "wget -q https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip && \
-          unzip -o duckdb_cli-linux-amd64.zip && chmod +x duckdb && \
-          sudo mv -f duckdb /usr/local/bin/ && rm duckdb_cli-linux-amd64.zip"
-    else
-      info_message "DuckDB is already at version $current_version. Skipping update."
-    fi
-  else
-    info_message "DuckDB is not installed. Skipping DuckDB update."
-  fi
+  run_with_spinner "Updating DuckDB" \
+    "curl -fsSL https://install.duckdb.org | sh"
 fi
 
 # 7. Update Docker
