@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release tag must have the form vX.Y.Z: $RELEASE_TAG" >&2
+            exit 1
+          fi
+      - name: Check shell scripts
+        run: shellcheck setup.sh update.sh tests/test_wrappers.sh tests/test_workflows.sh
+      - name: Test wrappers
+        run: bash tests/test_wrappers.sh
+      - name: Test workflows
+        run: bash tests/test_workflows.sh
+
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify exact tagged commit
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          tag_sha=$(git rev-list -n 1 "$RELEASE_TAG")
+          if [[ $tag_sha != "$RELEASE_SHA" || $(git rev-parse HEAD) != "$RELEASE_SHA" ]]; then
+            echo "release checkout does not match $RELEASE_TAG at $RELEASE_SHA" >&2
+            exit 1
+          fi
+      - name: Publish wrapper assets idempotently
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            existing_tag=$(gh release view "$RELEASE_TAG" --json tagName --jq .tagName)
+            if [[ $existing_tag != "$RELEASE_TAG" ]]; then
+              echo "release tag mismatch: expected $RELEASE_TAG, found $existing_tag" >&2
+              exit 1
+            fi
+          else
+            gh release create "$RELEASE_TAG" \
+              --verify-tag \
+              --generate-notes \
+              --title "$RELEASE_TAG"
+          fi
+          gh release upload "$RELEASE_TAG" setup.sh update.sh --clobber
+      - name: Notify Nero setup
+        env:
+          GH_TOKEN: ${{ secrets.NERO_REPO_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ -z ${GH_TOKEN:-} ]]; then
+            echo "::notice::NERO_REPO_TOKEN is not configured; use the Nero updater's manual dispatch"
+            exit 0
+          fi
+          gh api \
+            --method POST \
+            repos/StanfordHPDS/nero_setup/dispatches \
+            -f event_type=gcp_setup_released \
+            -F "client_payload[tag]=$RELEASE_TAG"
