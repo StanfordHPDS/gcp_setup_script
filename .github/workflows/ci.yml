@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  wrappers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Lint workflows
+        uses: docker://rhysd/actionlint:1.7.7
+      - name: Check shell scripts
+        run: shellcheck setup.sh update.sh tests/test_wrappers.sh tests/test_workflows.sh
+      - name: Test wrappers
+        run: bash tests/test_wrappers.sh
+      - name: Test workflows
+        run: bash tests/test_workflows.sh
