@@ -28,7 +28,7 @@ assert_order() {
   local previous=0
   local expected line
   for expected in "$@"; do
-    line=$(grep -nF -- "$expected" "$file" | head -1 | cut -d: -f1)
+    line=$(grep -nF -- "$expected" "$file" | head -1 | cut -d: -f1 || true)
     [[ -n $line ]] || fail "$file does not contain: $expected"
     (( line > previous )) || fail "$expected appeared out of order in $file"
     previous=$line
@@ -38,10 +38,11 @@ assert_order() {
 for script in setup.sh update.sh; do
   bash -n "$ROOT/$script"
   assert_contains "$ROOT/$script" 'hpds setup --profile server --yes'
-  assert_not_contains "$ROOT/$script" 'QUARTO_VERSION|RSTUDIO_SERVER_VERSION|apt-get|apt2|Miniconda|install\.duckdb|rustup\.rs|code-server\.dev|rig\.r-pkg\.org'
+  assert_not_contains "$ROOT/$script" 'QUARTO_VERSION|RSTUDIO_SERVER_VERSION|apt-get (-[^ ]+ )*install|apt2|Miniconda|install\.duckdb|rustup\.rs|code-server\.dev|rig\.r-pkg\.org'
 done
 assert_contains "$ROOT/setup.sh" 'releases/latest/download/hpds-installer.sh'
 assert_contains "$ROOT/update.sh" 'hpds upgrade'
+assert_not_contains "$ROOT/update.sh" 'apt-get'
 
 TEST_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/gcp-wrapper-tests.XXXXXX")
 trap 'rm -rf "$TEST_ROOT"' EXIT
@@ -52,6 +53,7 @@ new_case() {
   export CALLS="$CASE_DIR/calls"
   export TMPDIR="$CASE_DIR/tmp"
   export PATH="$CASE_DIR/bin:/usr/bin:/bin"
+  export GCP_SETUP_REBOOT_REQUIRED="$CASE_DIR/reboot-required"
   mkdir -p "$HOME" "$TMPDIR" "$CASE_DIR/bin"
   : > "$CALLS"
 
@@ -95,7 +97,15 @@ fi
 HPDS
 chmod +x "$HOME/.local/bin/hpds"
 STUB
-  chmod +x "$CASE_DIR/bin/curl" "$CASE_DIR/bin/sh"
+  cat > "$CASE_DIR/bin/sudo" <<'STUB'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'sudo %s\n' "$*" >> "$CALLS"
+if [[ " $* " == *' upgrade '* && ${UPGRADE_FAIL:-0} == 1 ]]; then
+  exit 100
+fi
+STUB
+  chmod +x "$CASE_DIR/bin/curl" "$CASE_DIR/bin/sh" "$CASE_DIR/bin/sudo"
 }
 
 install_existing_hpds() {
@@ -113,9 +123,24 @@ run_failure() {
   fi
 }
 
+readonly APT='sudo env DEBIAN_FRONTEND=noninteractive NEEDRESTART_SUSPEND=1 apt-get -o DPkg::Lock::Timeout=600'
+
 new_case
-run_success bash "$ROOT/setup.sh"
-assert_order "$CALLS" 'curl ' 'installer ' 'hpds setup --profile server --yes'
+output=$(bash "$ROOT/setup.sh" 2>&1) || fail 'expected setup to succeed'
+assert_order "$CALLS" "$APT update" "$APT -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade -y" 'curl ' 'installer ' 'hpds setup --profile server --yes'
+[[ $output != *reboot* ]] || fail 'setup asked for a reboot that no update required'
+
+new_case
+touch "$GCP_SETUP_REBOOT_REQUIRED"
+output=$(bash "$ROOT/setup.sh" 2>&1) || fail 'expected setup to succeed'
+[[ $output == *'sudo reboot'* ]] || fail "setup did not report the required reboot: $output"
+if grep -Fq 'sudo reboot' "$CALLS"; then
+  fail 'setup rebooted instead of reporting that a reboot is required'
+fi
+
+new_case
+run_failure env UPGRADE_FAIL=1 bash "$ROOT/setup.sh"
+[[ $(tail -1 "$CALLS") == *' upgrade -y' ]] || fail 'setup continued after the system upgrade failed'
 
 new_case
 install_existing_hpds

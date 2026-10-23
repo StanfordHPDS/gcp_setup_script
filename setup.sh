@@ -2,6 +2,7 @@
 set -euo pipefail
 
 readonly HPDS_INSTALLER_URL="https://github.com/StanfordHPDS/hpds-cli/releases/latest/download/hpds-installer.sh"
+readonly REBOOT_REQUIRED="${GCP_SETUP_REBOOT_REQUIRED:-/var/run/reboot-required}"
 HPDS_INSTALLER=
 
 cleanup() {
@@ -10,6 +11,16 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+
+apt_get() {
+  sudo env DEBIAN_FRONTEND=noninteractive NEEDRESTART_SUSPEND=1 \
+    apt-get -o DPkg::Lock::Timeout=600 "$@"
+}
+
+# Apply the updates published since the VM image was built. hpds installs
+# only the packages it needs and never upgrades the rest of the system.
+apt_get update
+apt_get -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade -y
 
 HPDS_INSTALLER=$(mktemp "${TMPDIR:-/tmp}/hpds-installer.XXXXXX")
 curl \
@@ -32,3 +43,7 @@ if ! command -v hpds >/dev/null 2>&1; then
 fi
 
 hpds setup --profile server --yes
+
+if [[ -e $REBOOT_REQUIRED ]]; then
+  printf '\nThe system updates need a reboot to take effect. Run sudo reboot, then reconnect.\n'
+fi
