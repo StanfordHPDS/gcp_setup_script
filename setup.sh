@@ -5,7 +5,7 @@ readonly HPDS_INSTALLER_URL="https://github.com/StanfordHPDS/hpds-cli/releases/l
 readonly REBOOT_REQUIRED="${GCP_SETUP_REBOOT_REQUIRED:-/var/run/reboot-required}"
 HPDS_INSTALLER=
 
-# shellcheck disable=SC2329 # Called by the EXIT trap; the final exit hides that from shellcheck.
+# shellcheck disable=SC2317,SC2329 # Called by the EXIT trap; the final exit hides that from shellcheck.
 cleanup() {
   if [[ -n $HPDS_INSTALLER ]]; then
     rm -f "$HPDS_INSTALLER"
