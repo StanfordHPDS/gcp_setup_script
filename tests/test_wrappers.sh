@@ -129,14 +129,20 @@ new_case
 output=$(bash "$ROOT/setup.sh" 2>&1) || fail 'expected setup to succeed'
 assert_order "$CALLS" "$APT update" "$APT -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade -y" 'curl ' 'installer ' 'hpds setup --profile server --yes'
 [[ $output != *reboot* ]] || fail 'setup asked for a reboot that no update required'
+if grep -Fq 'sudo reboot' "$CALLS"; then
+  fail 'setup rebooted although no update required it'
+fi
 
 new_case
 touch "$GCP_SETUP_REBOOT_REQUIRED"
-output=$(bash "$ROOT/setup.sh" 2>&1) || fail 'expected setup to succeed'
-[[ $output == *'sudo reboot'* ]] || fail "setup did not report the required reboot: $output"
-if grep -Fq 'sudo reboot' "$CALLS"; then
-  fail 'setup rebooted instead of reporting that a reboot is required'
-fi
+run_success bash "$ROOT/setup.sh"
+assert_order "$CALLS" "$APT update" 'hpds setup --profile server --yes' 'sudo reboot'
+[[ $(tail -1 "$CALLS") == 'sudo reboot' ]] || fail 'setup did not reboot last when the updates required it'
+
+new_case
+touch "$GCP_SETUP_REBOOT_REQUIRED"
+run_failure env HPDS_SETUP_FAIL=1 bash "$ROOT/setup.sh"
+[[ $(tail -1 "$CALLS") == 'sudo reboot' ]] || fail 'setup did not reboot after hpds setup failed'
 
 new_case
 run_failure env UPGRADE_FAIL=1 bash "$ROOT/setup.sh"
