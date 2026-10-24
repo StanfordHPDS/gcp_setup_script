@@ -5,6 +5,7 @@ readonly HPDS_INSTALLER_URL="https://github.com/StanfordHPDS/hpds-cli/releases/l
 readonly REBOOT_REQUIRED="${GCP_SETUP_REBOOT_REQUIRED:-/var/run/reboot-required}"
 HPDS_INSTALLER=
 
+# shellcheck disable=SC2317,SC2329 # Called by the EXIT trap; the final exit hides that from shellcheck.
 cleanup() {
   if [[ -n $HPDS_INSTALLER ]]; then
     rm -f "$HPDS_INSTALLER"
@@ -42,8 +43,11 @@ if ! command -v hpds >/dev/null 2>&1; then
   exit 1
 fi
 
-hpds setup --profile server --yes
+status=0
+hpds setup --profile server --yes || status=$?
 
 if [[ -e $REBOOT_REQUIRED ]]; then
-  printf '\nThe system updates need a reboot to take effect. Run sudo reboot, then reconnect.\n'
+  printf '\nRebooting to finish the system updates. Reconnect in a minute or two.\n'
+  sudo reboot
 fi
+exit "$status"
