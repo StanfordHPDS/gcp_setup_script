@@ -67,15 +67,20 @@ jobs:
               --title "$RELEASE_TAG"
           fi
           gh release upload "$RELEASE_TAG" setup.sh update.sh --clobber
+      - name: Get a hpds-release-bot token
+        id: bot
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: Iv23liXHqe7enFCScchu
+          private-key: ${{ secrets.HPDS_BOT_PRIVATE_KEY }}
+          owner: StanfordHPDS
+          repositories: nero_setup
+          permission-contents: write
       - name: Notify Nero setup
         env:
-          GH_TOKEN: ${{ secrets.NERO_REPO_TOKEN }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          if [[ -z ${GH_TOKEN:-} ]]; then
-            echo "::notice::NERO_REPO_TOKEN is not configured; use the Nero updater's manual dispatch"
-            exit 0
-          fi
           gh api \
             --method POST \
             repos/StanfordHPDS/nero_setup/dispatches \
