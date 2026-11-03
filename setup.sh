@@ -3,6 +3,7 @@ set -euo pipefail
 
 readonly HPDS_INSTALLER_URL="https://github.com/StanfordHPDS/hpds-cli/releases/latest/download/hpds-installer.sh"
 readonly REBOOT_REQUIRED="${GCP_SETUP_REBOOT_REQUIRED:-/var/run/reboot-required}"
+readonly LOG_FILE="$HOME/hpds-setup.log"
 HPDS_INSTALLER=
 
 # shellcheck disable=SC2317,SC2329 # Called by the EXIT trap; the final exit hides that from shellcheck.
@@ -13,15 +14,35 @@ cleanup() {
 }
 trap cleanup EXIT
 
-apt_get() {
-  sudo env DEBIAN_FRONTEND=noninteractive NEEDRESTART_SUSPEND=1 \
-    apt-get -o DPkg::Lock::Timeout=600 "$@"
+# Runs a command with its output appended to the setup log under a header,
+# printing only "<label>... done" or "<label>... failed". On failure the last
+# lines of the command's output and the log path go to stderr. Stdin comes
+# from /dev/null so a command cannot consume this script when it is piped
+# into bash.
+run_logged() {
+  local label=$1
+  local header=$2
+  shift 2
+  local start=0
+  local status=0
+  if [[ -f $LOG_FILE ]]; then
+    start=$(wc -l < "$LOG_FILE")
+  fi
+  printf '=== %s ===\n' "$header" >> "$LOG_FILE"
+  printf '%s... ' "$label"
+  "$@" < /dev/null >> "$LOG_FILE" 2>&1 || status=$?
+  if (( status == 0 )); then
+    printf 'done\n'
+    return 0
+  fi
+  printf 'failed\n'
+  {
+    printf '\n%s failed. Last lines of output:\n' "$header"
+    tail -n +"$((start + 2))" "$LOG_FILE" | tail -n 10 | sed 's/^/  /'
+    printf '\nFull log: %s\n' "$LOG_FILE"
+  } >&2
+  return "$status"
 }
-
-# Apply the updates published since the VM image was built. hpds installs
-# only the packages it needs and never upgrades the rest of the system.
-apt_get update
-apt_get -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade -y
 
 HPDS_INSTALLER=$(mktemp "${TMPDIR:-/tmp}/hpds-installer.XXXXXX")
 curl \
@@ -33,7 +54,7 @@ curl \
   --show-error \
   --output "$HPDS_INSTALLER" \
   "$HPDS_INSTALLER_URL"
-sh "$HPDS_INSTALLER"
+run_logged 'Installing hpds' 'hpds installer' sh "$HPDS_INSTALLER"
 rm -f "$HPDS_INSTALLER"
 HPDS_INSTALLER=
 
@@ -43,6 +64,8 @@ if ! command -v hpds >/dev/null 2>&1; then
   exit 1
 fi
 
+# hpds applies pending system updates, prints one line per step, and appends
+# the full output to the same log.
 status=0
 hpds setup --profile server --yes || status=$?
 
